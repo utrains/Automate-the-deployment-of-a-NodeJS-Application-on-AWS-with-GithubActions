@@ -2,7 +2,49 @@
 
 The following lines will guide you through using the GitHub Actions pipeline to deploy a Node.js application on AWS. The pipeline uses AWS OIDC Roles for secure and passwordless authentication.
 
-## What is OIDC and why do we need it?
+## Overview on OIDC
+
+### Definition
+
+**OIDC (OpenID Connect)** is an authentication protocol that verifies the identity of users when they sign in to access digital services. 
+
+OIDC is used to securely connect AWS with external identity providers (like GitHub, Google, or your company’s SSO).
+
+### Key components of OIDC
+There are six primary components in OIDC:
+
+1. Authentication – Confirms who the user is (verifies the iser's identity).
+
+2. Client – The app or website asking for user identity info.
+
+3. Relying Party (RP) – The app that trusts an identity provider to authenticate users.
+
+4. Identity Token – A secure message that contains user identity and authentication details.
+
+5. OpenID Provider – A trusted service (like Google) that verifies users and issues identity tokens.
+
+6. User – The person or service trying to access an app without creating a new account.
+
+
+In the context of this project, we can see the various components on the following diagram: 
+
+![image](https://github.com/user-attachments/assets/c4b59f69-7ac6-443d-9238-d922a99a0408)
+
+### Basic OIDC Features in This Project
+Secure Identity Verification
+GitHub Actions proves its identity to AWS using OIDC — no AWS keys needed.
+
+No Secret Storage
+We don’t store AWS credentials in GitHub. OIDC gives GitHub a short-lived token at runtime.
+
+Short-Lived ID Tokens
+GitHub gets a temporary token that AWS trusts to allow actions like deploying to ECS.
+
+Built on OAuth 2.0
+OIDC uses the security model of OAuth to safely pass identity info between GitHub and AWS.
+
+Trusted Login Flow
+AWS acts as the relying party and only allows access if the token comes from GitHub's trusted OIDC provider.
 
 ## Repository structure
 
