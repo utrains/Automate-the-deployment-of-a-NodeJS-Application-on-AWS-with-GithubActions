@@ -13,7 +13,7 @@ OIDC is used to securely connect AWS with external identity providers (like GitH
 ### Key components of OIDC
 There are six primary components in OIDC:
 
-1. **Authentication** – Confirms who the user is (verifies the iser's identity).
+1. **Authentication** – Confirms who the user is (verifies the user's identity).
 
 2. **Client** – The app or website asking for user identity info.
 
@@ -43,12 +43,16 @@ In the context of this project, we can see the various components on the followi
 ## Repository structure
 
 This repository contains the Node.js application that will be deployed in AWS. Here is a brief description of the overall structure:
-- **.github/workflows** directory: contains the github action workflow that will be use to automate the provisioning of the various components of the infrastructure and the deployment the application.
+- **.github/workflows** directory: contains the Github Actions workflow that will be use to automate the provisioning of the various components of the infrastructure and the deployment the application.
+  
 - **backend:** Contains the code for the backend of the application with the corresponding Dockerfile
+
 - **frontend:** Contains the code for the frontend of the app (Reactjs) with the corresponding Dockerfile
+
 - **infra:** Contains the Terraform code to deploy the infrastructure that will host the application in AWS
+
 - **ecs-deployment:** Contains the Terraform code used to deploy the ECS tasks definitions and services for the app
-- **Jenkinsfile:** Contains the CICD pipeline that will be use to automate the provisioning of the various components of the infrastructure and the deployment the application.
+
 
 ## Steps to deploy the app
 
@@ -121,7 +125,7 @@ arn:aws:iam::123456789012:role/github-actions-oidc-role
 
 ### Step 3: Configure GitHub Actions to use the IAM role
 
-1. Configure the AWS role ARN as secret in the Github repository
+#### 1. Configure the AWS role ARN as secret in the Github repository
 
 - In your GitHub repository, go to **Settings** > **Secrets and variables** > **Actions**.
 - Click on Add a new secret:
@@ -129,7 +133,7 @@ arn:aws:iam::123456789012:role/github-actions-oidc-role
    * Name: `AWS_ROLE_ARN`
    * Value: Paste the Role ARN you copied earlier.
 
-2. Set the secret (AWS_ROLE_ARN) in your GitHub Actions workflow like this:
+#### 2. Set the secret (AWS_ROLE_ARN) in your GitHub Actions workflow like this:
 
 ```yaml
 name: Deploy to AWS
@@ -163,7 +167,7 @@ jobs:
 
 ### Step 4: Configure Manual Approval in GitHub Actions 
 
-In our Github workflow we have a final step that should be executed only when we want to destroy the infrastructure.
+In our Github workflow we have final steps that should be executed only when we want to destroy the infrastructure.
 
 In some CI/CD scenarios when dealing with destructive infrastructure operations like tearing down environments, it's important to require **manual approval** before execution. 
 
@@ -173,10 +177,10 @@ Here is how to implement manual approval step-by-step:
 
 #### 1. Create an Environment with Required Reviewers
 
-1. In your GitHub repository, go to **Settings > Environments**.
-2. Create a new environment named `destroy-approval`.
-3. Under **Deployment protection rules**, add required reviewers (your GitHub username or a team).
-4. Save the environment.
+* In your GitHub repository, go to **Settings > Environments**.
+* Create a new environment named `destroy-approval`.
+* Under **Deployment protection rules**, add required reviewers (your GitHub username or a team).
+* Save the environment.
 
 > This ensures any job using this environment will pause for approval before execution.
 
@@ -251,13 +255,13 @@ destroy-ecs:
 
 ### Step 5: Execute the pipeline and test the application 
 
-#### Execute the pipeline
+#### 1. Execute the pipeline
 
 For the pipeline to start execution, you just need to commit and push modifications. You can also trigger the workflow manually.
 
 The workflow will pause at the `wait-for-ecs-destroy-approval` job.
 
-#### Test the application
+#### 2. Test the application
 To verify that the app is working properly, you will need to enter the URL of your frontend in the browser.
 
 The URL should be something like: ###################################################
@@ -287,7 +291,7 @@ In your workflow, the following environment variables are set globally:
 
 ################################################
 
-# Darelle:  these variables should be set as environment variables not directly in the workflow. So we must add a step to configure these environment variables too
+# Darelle:  these variables should be set as environment variables not directly in the workflow. So we must add a step to configure these environment variables too. The tag can remain as global variable but the AWS region, Frontend repo and backend repo should be removed. Please Let me know your thoughts on this.
 
 ```yaml
 env:
@@ -304,12 +308,14 @@ env:
 Before defining the destruction job, we need to understand this basics:
 - When Terraform is used to automate the provisioning of ressources, a terraform state file is generated.
 - The Terraform state file keeps a record of everything it created, so Terraform uses it to know what to delete when destroying the infrastructure.
-- Thus, we need to find a way to transfer that file from one job (creation job) to the other (destruction job). 
+- Thus, we need to find a way to transfer that file from one job (creation job) to the other (destruction job).
+
+**Note: In the context of this project, we did not use a remote backend to store the state files.**
 
 In our Github Action workflow, we had two jobs that generated a terraform state file.  
 - The `Create-the-infrastructure-in-AWS` job to create the infrastructure
 - The `Apply-the-terraform-code-to-Launch-the-frontend-and-the-backend-app` job to launch the app on the infrastructure.
 
-The 2 terraform state files were then saved as artifact (in steps) in order to transfer them to the destroy jobs.
+The 2 terraform state files were then saved as artifact (verify the steps of the jobs) in order to transfer them to the destroy jobs.
 
 **Note: Go through the workflow to better understand**
