@@ -1,85 +1,71 @@
 # Deploy a Node.js App on ECS using GitHub Actions with OIDC role
 
-The following lines will guide you through using the GitHub Actions pipeline to deploy a Node.js application on AWS. The pipeline leverages AWS OIDC Roles for secure and passwordless authentication.
+The following lines will guide you through using the GitHub Actions pipeline to deploy a Node.js application on AWS. The pipeline uses AWS OIDC Roles for secure and passwordless authentication.
 
-Before lauching this pipeline, ensure the following are in place:
+## What is OIDC and why do we need it?
 
-## AWS Account
+## Repository structure
+
+This repository contains the Node.js application that will be deployed in AWS. Here is a brief description of the overall structure:
+- **.github/workflows** directory: contains the github action workflow that will be use to automate the provisioning of the various components of the infrastructure and the deployment the application.
+- **bakend:** Contains the code for the backend of the application with the corresponding Dockerfile
+- **frontend:** Contains the code for the frontend of the app (Reactjs) with the corresponding Dockerfile
+- **infra:** Contains the Terraform code to deploy the infrastructure that will host the application in AWS
+- **ecs-deployment:** Contains the Terraform code used to deploy the ECS tasks definitions and services for the app
+- **Jenkinsfile:** Contains the CICD pipeline that will be use to automate the provisioning of the various components of the infrastructure and the deployment the application.
+
+## Steps to deploy the app
+
+### Prerequisites
+Before starting this project, you need to have the following:
+
+- Access to an AWS account with permissions to create IAM roles and identity providers.
+- A GitHub repository where this role will be used.
+- Basic knowledge of GitHub Actions and AWS IAM.
+
+### Step 1: Create the OIDC Identity Provider in AWS
+
+1. Sign in to the AWS Management Console.
+2. Navigate to **IAM** > **Identity Providers**.
+3. Click **Add provider**.
+4. Set the **Provider type** to `OIDC`.
+5. For **Provider URL**, enter:
+   ```
+   https://token.actions.githubusercontent.com
+   ```
+6. For **Audience**, enter:
+   ```
+   sts.amazonaws.com
+   ```
+7. Click **Add provider** to save.
+
 
 - Create an IAM Role (`github-actions-oidc-role` in this case) with appropriate permissions to manage ECR, ECS, and Terraform.
 - Configure the IAM Role trust policy to allow GitHub’s OIDC provider for your repository.
 
-### Create an AWS IAM role that GitHub Actions can assume using OpenID Connect (OIDC)
+### Step 2: Create an AWS IAM role for Github Actions
+
+Here we need to create an IAM Role for Github Actions, with appropriate permissions to manage ECR, ECS, and Terraform.
 
 This setup allows GitHub Actions to authenticate with AWS without requiring long-lived credentials.
 
-We need to create an IAM role named `github-actions-oidc-role` with the following AWS managed policies:
+The role will trust GitHub’s OIDC provider to allow workflows from the repository to assume the role.
+To achieve this:
 
-* `AmazonEC2ContainerRegistryFullAccess`
-* `AmazonEC2ContainerRegistryPowerUser`
-* `AmazonEC2FullAccess`
-* `AmazonECS_FullAccess`
-* `IAMFullAccess`
-
-The role will trust GitHub’s OIDC provider to allow workflows from thr repository to assume the role.
-
-**Prerequisites**
-
-* Access to an AWS account with permissions to create IAM roles and identity providers.
-* A GitHub repository where this role will be used.
-* Basic knowledge of GitHub Actions and AWS IAM.
-
-
-#### Step 1: Create the OIDC Identity Provider in AWS
-
-1. Sign in to the AWS Management Console.
-
-2. Navigate to **IAM** > **Identity Providers**.
-
-3. Click **Add provider**.
-
-4. Set the **Provider type** to `OIDC`.
-
-5. For **Provider URL**, enter:
-
-   ```
-   https://token.actions.githubusercontent.com
-   ```
-
-6. For **Audience**, enter:
-
-   ```
-   sts.amazonaws.com
-   ```
-
-7. Click **Add provider** to save.
-
-
-#### Step 2: Create the IAM Role `github-actions-oidc-role`
-
-1. Go to **IAM** > **Roles**.
-
-2. Click **Create role**.
-
-3. Select **Web identity** as the trusted entity type.
-
-4. Choose the OIDC provider you created: `token.actions.githubusercontent.com`.
-
-5. Set the **Audience** to `sts.amazonaws.com`.
-
-6. Replace:
-
-   * `<OWNER>` with your GitHub username or organization: utrains
+1. Go to **IAM** > **Roles** click **Create role**.
+2. Select **Web identity** as the trusted entity type.
+3. Choose the OIDC provider you created: `token.actions.githubusercontent.com`.
+4. Set the **Audience** to `sts.amazonaws.com`.
+5. Replace:
+   * `<OWNER>` with your GitHub username or organization: (for us we use `utrains`)
    * `<REPO>` with your repository name: Deploy-a-NodeJS-Application-on-AWS-Using-GithubActions
-   * `<BRANCH>` with the branch name: GithubAction
+   * `<BRANCH>` with the branch name: main (put your branch name)
 
-7. Click **Next** to proceed.
+Click **Next** to proceed.
 
-
-#### Step 3: Attach Permissions
+6. Attach IAM Permissions
 
 Attach the following AWS managed policies to the role:
-
 * `AmazonEC2ContainerRegistryFullAccess`
 * `AmazonEC2ContainerRegistryPowerUser`
 * `AmazonEC2FullAccess`
@@ -89,44 +75,30 @@ Attach the following AWS managed policies to the role:
 Then click **Next**.
 
 
-#### Step 4: Name the Role
+7. Name the Role
 
 * **Role name**: `github-actions-oidc-role`
 * Add tags as needed (optional)
 * Click **Create role**
 
-
-#### Step 5: Save the Role ARN
+8. Save the Role ARN
 
 After creation, copy the **Role ARN** from the role summary page. It will look like this:
-
 ```
 arn:aws:iam::123456789012:role/github-actions-oidc-role
 ```
 
+### Step 3: Configure GitHub Actions to use the IAM role
 
-## GitHub Repository
+1. Configure the AWS role ARN as secret in the Github repository
 
-- Contains the Node.js app source code.
-- Includes Terraform configuration for infrastructure (under `infra/` directory).
-- Includes Dockerfiles for backend and frontend under `infra/backend` and `infra/frontend`.
-
-## GitHub Repository Settings
-
-- Enable GitHub Actions.
-- Grant the workflow permission to request OIDC tokens (`id-token: write`).
-- Set repository environment for manual approvals (for destroy jobs).
-
-### Configure GitHub Actions
-
-1. In your GitHub repository, go to **Settings** > **Secrets and variables** > **Actions**.
-
-2. Add a new secret:
+- In your GitHub repository, go to **Settings** > **Secrets and variables** > **Actions**.
+- Click on Add a new secret:
 
    * Name: `AWS_ROLE_ARN`
    * Value: Paste the Role ARN you copied earlier.
 
-3. Use the role in your GitHub Actions workflow like this:
+2. Set the secret (AWS_ROLE_ARN) in your GitHub Actions workflow like this:
 
 ```yaml
 name: Deploy to AWS
@@ -158,28 +130,37 @@ jobs:
         run: aws sts get-caller-identity
 ```
 
-### Using Manual Approval in GitHub Actions Workflows
+### Step 4: Configure Manual Approval in GitHub Actions 
 
-In some CI/CD scenarios when dealing with destructive infrastructure operations like tearing down environments, it's important to require **manual approval** before executing. GitHub Actions provides this functionality via **Environments** with required reviewers. We will see now  how to implement manual approval step-by-step:
+In our Github workflow we have a final step that should be executed only when we want to destroy the infrastructure.
 
+In some CI/CD scenarios when dealing with destructive infrastructure operations like tearing down environments, it's important to require **manual approval** before execution. 
+
+GitHub Actions provides this functionality via **Environments** with required reviewers.
+
+Here is how to implement manual approval step-by-step:
 
 #### 1. Create an Environment with Required Reviewers
 
-1. Navigate to your GitHub repository.
-2. Go to **Settings > Environments**.
-3. Create a new environment named `destroy-approval`.
-4. Under **Deployment protection rules**, add required reviewers (your GitHub username or a team).
-5. Save the environment.
+1. In your GitHub repository, go to **Settings > Environments**.
+2. Create a new environment named `destroy-approval`.
+3. Under **Deployment protection rules**, add required reviewers (your GitHub username or a team).
+4. Save the environment.
 
 > This ensures any job using this environment will pause for approval before execution.
 
----
+#### 2. Define the Jobs that require manual approval in `deploy.yml`
 
-### 2. Define Workflow Jobs in `destroy.yml`
+Before defining the destruction job, we need to understand this basics:
+- When Terraform is used to automate the provisioning of ressources, a terraform state file is generated.
+- The Terraform state file keeps a record of everything it created, so Terraform uses it to know what to delete when destroying the infrastructure.
+- Thus, we need to find a way to transfer that file from one job (creation job) to the other (destruction job). 
 
-#### Apply Job
+In our Github Action workflow, we had two jobs that generated a terraform state file. The 2 terraform state files were then saved as artifact (in steps) in order to transfer them to the destroy job that we will create here. 
+- The `Create-the-infrastructure-in-AWS` job to create the infrastructure
+- The `Apply-the-terraform-code-to-Launch-the-frontend-and-the-backend-app` job to launch the app on the infrastructure.
 
-This job is assumed to run prior and generate a `terraform.tfstate` file saved as an artifact.
+Note: Go through the workflow to better understand
 
 ##### Manual Approval Job
 
