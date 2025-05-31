@@ -13,17 +13,17 @@ OIDC is used to securely connect AWS with external identity providers (like GitH
 ### Key components of OIDC
 There are six primary components in OIDC:
 
-1. Authentication – Confirms who the user is (verifies the iser's identity).
+1. **Authentication** – Confirms who the user is (verifies the iser's identity).
 
-2. Client – The app or website asking for user identity info.
+2. **Client** – The app or website asking for user identity info.
 
-3. Relying Party (RP) – The app that trusts an identity provider to authenticate users.
+3. **Relying Party (RP)** – The app that trusts an identity provider to authenticate users.
 
-4. Identity Token – A secure message that contains user identity and authentication details.
+4. **Identity Token** – A secure message that contains user identity and authentication details.
 
-5. OpenID Provider – A trusted service (like Google) that verifies users and issues identity tokens.
+5. **OpenID Provider** – A trusted service (like Google) that verifies users and issues identity tokens.
 
-6. User – The person or service trying to access an app without creating a new account.
+6. **User** – The person or service trying to access an app without creating a new account.
 
 
 In the context of this project, we can see the various components on the following diagram: 
@@ -31,26 +31,20 @@ In the context of this project, we can see the various components on the followi
 ![image](https://github.com/user-attachments/assets/c4b59f69-7ac6-443d-9238-d922a99a0408)
 
 ### Basic OIDC Features in This Project
-Secure Identity Verification
-GitHub Actions proves its identity to AWS using OIDC — no AWS keys needed.
 
-No Secret Storage
-We don’t store AWS credentials in GitHub. OIDC gives GitHub a short-lived token at runtime.
+**1. Secure Identity Verification:** GitHub Actions proves its identity to AWS using OIDC — no AWS keys needed.
 
-Short-Lived ID Tokens
-GitHub gets a temporary token that AWS trusts to allow actions like deploying to ECS.
+**2. No Secret Storage:** We don’t store AWS credentials in GitHub. OIDC gives GitHub a short-lived token at runtime.
 
-Built on OAuth 2.0
-OIDC uses the security model of OAuth to safely pass identity info between GitHub and AWS.
+**3. Short-Lived ID Tokens:** GitHub gets a temporary token that AWS trusts to allow actions like deploying to ECS.
 
-Trusted Login Flow
-AWS acts as the relying party and only allows access if the token comes from GitHub's trusted OIDC provider.
+**4. Trusted Login Flow:** AWS acts as the relying party and only allows access if the token comes from GitHub's trusted OIDC provider.
 
 ## Repository structure
 
 This repository contains the Node.js application that will be deployed in AWS. Here is a brief description of the overall structure:
 - **.github/workflows** directory: contains the github action workflow that will be use to automate the provisioning of the various components of the infrastructure and the deployment the application.
-- **bakend:** Contains the code for the backend of the application with the corresponding Dockerfile
+- **backend:** Contains the code for the backend of the application with the corresponding Dockerfile
 - **frontend:** Contains the code for the frontend of the app (Reactjs) with the corresponding Dockerfile
 - **infra:** Contains the Terraform code to deploy the infrastructure that will host the application in AWS
 - **ecs-deployment:** Contains the Terraform code used to deploy the ECS tasks definitions and services for the app
@@ -62,7 +56,7 @@ This repository contains the Node.js application that will be deployed in AWS. H
 Before starting this project, you need to have the following:
 
 - Access to an AWS account with permissions to create IAM roles and identity providers.
-- A GitHub repository where this role will be used.
+- A GitHub repository where this role will be used. You will need to clone this repository and push its content to your own github repository
 - Basic knowledge of GitHub Actions and AWS IAM.
 
 ### Step 1: Create the OIDC Identity Provider in AWS
@@ -81,20 +75,15 @@ Before starting this project, you need to have the following:
    ```
 7. Click **Add provider** to save.
 
-
-- Create an IAM Role (`github-actions-oidc-role` in this case) with appropriate permissions to manage ECR, ECS, and Terraform.
-- Configure the IAM Role trust policy to allow GitHub’s OIDC provider for your repository.
-
 ### Step 2: Create an AWS IAM role for Github Actions
 
 Here we need to create an IAM Role for Github Actions, with appropriate permissions to manage ECR, ECS, and Terraform.
 
-This setup allows GitHub Actions to authenticate with AWS without requiring long-lived credentials.
-
 The role will trust GitHub’s OIDC provider to allow workflows from the repository to assume the role.
+
 To achieve this:
 
-1. Go to **IAM** > **Roles** click **Create role**.
+1. In your AWS console, go to **IAM** > **Roles** click **Create role**.
 2. Select **Web identity** as the trusted entity type.
 3. Choose the OIDC provider you created: `token.actions.githubusercontent.com`.
 4. Set the **Audience** to `sts.amazonaws.com`.
@@ -191,20 +180,15 @@ Here is how to implement manual approval step-by-step:
 
 > This ensures any job using this environment will pause for approval before execution.
 
-#### 2. Define the Jobs that require manual approval in `deploy.yml`
+#### 2. Specify the environment created in the manual approval jobs of the workflow
 
-Before defining the destruction job, we need to understand this basics:
-- When Terraform is used to automate the provisioning of ressources, a terraform state file is generated.
-- The Terraform state file keeps a record of everything it created, so Terraform uses it to know what to delete when destroying the infrastructure.
-- Thus, we need to find a way to transfer that file from one job (creation job) to the other (destruction job). 
+In our workflow, we have 2 jobs that destroy the ressources in AWS. 
+- The job `destroy-ecs`: which destroys all the resources created by the job `Apply-the-terraform-code-to-Launch-the-frontend-and-the-backend-app`
+- The job `destroy-infra`: which destroys the infra created by the job `Create-the-infrastructure-in-AWS`
 
-In our Github Action workflow, we had two jobs that generated a terraform state file. The 2 terraform state files were then saved as artifact (in steps) in order to transfer them to the destroy job that we will create here. 
-- The `Create-the-infrastructure-in-AWS` job to create the infrastructure
-- The `Apply-the-terraform-code-to-Launch-the-frontend-and-the-backend-app` job to launch the app on the infrastructure.
+We created an intermediate job before each of these jobs to act as manual checkpoints. These jobs should be tied to the environment we created for Github actions to pause the workflow until a reviewer clicks on the **Approve deployment** button.
 
-Note: Go through the workflow to better understand
-
-##### Manual Approval Job
+Set the Environment in the jobs as follows (do the same for the second intermediate job)
 
 ```yaml
 wait-for-ecs-destroy-approval:
@@ -218,6 +202,8 @@ wait-for-ecs-destroy-approval:
 ```
 
 This job will not run until a GitHub reviewer approves it in the Actions tab.
+
+**Note: The destroy jobs depend on these intermediate jobs.**
 
 ##### Destroy Job
 
@@ -263,22 +249,45 @@ destroy-ecs:
         terraform destroy -auto-approve
 ```
 
----
+### Step 5: Execute the pipeline and test the application 
 
-#### How to Trigger Manual Approval?
+#### Execute the pipeline
 
-1. Push code or trigger the workflow manually.
-2. The workflow will pause at the `wait-for-ecs-destroy-approval` job.
-3. Go to **Actions > Workflow Run > Approval Job**.
-4. Click **Review deployments**.
-5. Click **Approve and deploy**.
+For the pipeline to start execution, you just need to commit and push modifications. You can also trigger the workflow manually.
+
+The workflow will pause at the `wait-for-ecs-destroy-approval` job.
+
+#### Test the application
+To verify that the app is working properly, you will need to enter the URL of your frontend in the browser.
+
+The URL should be something like: ###################################################
+
+The expected result should be
+
+##############################################################################################################
+# Darelle: Put the image here to show the expected result when the application is launched
+
+## Clean up
+
+When done testing the app, we will destroy the whole infrastructure to avoid recurrent charges in AWS.
+
+1. In your github repo, go to **Actions > Workflow Run > Approval Job**.
+2. Click on **Review deployments**.
+2. Click on **Approve and deploy**.
 
 Once approved, the `destroy-ecs` job will run.
+
+#########################################################
+# Darelle: put the steps to destroy the infra here too!
 
 
 ## Pipeline Environment Variables
 
 In your workflow, the following environment variables are set globally:
+
+################################################
+
+# Darelle:  these variables should be set as environment variables not directly in the workflow. So we must add a step to configure these environment variables too
 
 ```yaml
 env:
@@ -289,3 +298,18 @@ env:
   OIDC_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 ```
  - Replace the AWS Account ID and role ARN with your own values.
+
+
+## Quick note on Terraform state file transfer from one job to another (Optional)
+Before defining the destruction job, we need to understand this basics:
+- When Terraform is used to automate the provisioning of ressources, a terraform state file is generated.
+- The Terraform state file keeps a record of everything it created, so Terraform uses it to know what to delete when destroying the infrastructure.
+- Thus, we need to find a way to transfer that file from one job (creation job) to the other (destruction job). 
+
+In our Github Action workflow, we had two jobs that generated a terraform state file.  
+- The `Create-the-infrastructure-in-AWS` job to create the infrastructure
+- The `Apply-the-terraform-code-to-Launch-the-frontend-and-the-backend-app` job to launch the app on the infrastructure.
+
+The 2 terraform state files were then saved as artifact (in steps) in order to transfer them to the destroy jobs.
+
+**Note: Go through the workflow to better understand**
