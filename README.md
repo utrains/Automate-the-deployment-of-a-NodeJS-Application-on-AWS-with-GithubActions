@@ -324,6 +324,7 @@ Repeat for:
 Note: We will leave `TAG` it in the your workflow but it can also be put  here.
 
 
+
 ## Clean up
 
 When done testing the app, we will destroy the whole infrastructure to avoid recurrent charges in AWS.
@@ -333,6 +334,9 @@ When done testing the app, we will destroy the whole infrastructure to avoid rec
 2. Click on **Approve and deploy**.
 
 Once approved, the `destroy-ecs` job will run.
+
+
+![image](https://github.com/user-attachments/assets/7d8d7233-d997-431f-8ec7-2dbfda20f6b1)
 
 
 
