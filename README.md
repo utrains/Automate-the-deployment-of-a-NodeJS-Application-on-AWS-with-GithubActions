@@ -253,7 +253,7 @@ destroy-ecs:
         terraform destroy -auto-approve
 ```
 
-### Step 5: Execute the pipeline and test the application 
+### Step 5: Execute the pipeline and test the application
 
 #### 1. Execute the pipeline
 
@@ -285,23 +285,50 @@ Once approved, the `destroy-ecs` job will run.
 # Darelle: put the steps to destroy the infra here too!
 
 
-## Pipeline Environment Variables
+## Step 6: Pipeline Environment Variables
 
-In your workflow, the following environment variables are set globally:
+Hardcoding sensitives values in the pipeline is not a good practice so we will need to set environment variables in the workflow through GitHub repository settings instead.
+In this workflow, the following environment variables are set globally:
 
-################################################
-
-# Darelle:  these variables should be set as environment variables not directly in the workflow. So we must add a step to configure these environment variables too. The tag can remain as global variable but the AWS region, Frontend repo and backend repo should be removed. Please Let me know your thoughts on this.
-
-```yaml
-env:
-  AWS_REGION: us-east-2
-  FRONTEND_REPO: 885684264653.dkr.ecr.us-east-2.amazonaws.com/node-frontend-repo
-  BACKEND_REPO: 885684264653.dkr.ecr.us-east-2.amazonaws.com/node-backend-repo
-  TAG: latest
-  OIDC_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-```
+  * `AWS_REGION`
+  * `FRONTEND_REPO`
+  * `BACKEND_REPO`
+  * `AWS_ROLE_ARN`
+        
  - Replace the AWS Account ID and role ARN with your own values.
+
+### 1. Go to Your Repository Settings
+
+* Open your repository on GitHub.
+* Click the **Settings** tab at the top right.
+
+### 2. Access Secrets or Variables
+
+* In the left sidebar, click on:
+
+  * **Secrets and variables > Actions** (recommended for GitHub Actions secrets and variables)
+  * OR just **Secrets** if your interface doesn’t show the new Variables section yet.
+
+### 3. Add New Secret or Variable
+
+* Click on **New repository secret** to add sensitive data like keys or tokens.
+  **OR**
+* Click on **New repository variable** for non-sensitive info like region or repo URLs.
+
+### 4. Add Your Variables
+
+* **Name**: e.g., `AWS_REGION`
+* **Value**: e.g., `us-east-2`
+* Click **Add secret** or **Add variable**.
+
+Repeat for:
+
+* `AWS_REGION`
+* `FRONTEND_REPO`
+* `BACKEND_REPO`
+* `AWS_ROLE_ARN`
+
+Note: We will leave `TAG` it in the your workflow but it can also be put  here.
 
 
 ## Quick note on Terraform state file transfer from one job to another (Optional)
