@@ -1,3 +1,30 @@
+# ~~~~~~~~~~~ Security group for the Frontend LoadBalancer ~~~~~~~~~~
+
+resource "aws_security_group" "frontend_sg" {
+
+  name        = "${var.frontend_app_name}-sg"
+  description = "Security group for ${var.frontend_app_name} ecs"
+  vpc_id      = module.vpc.vpc_id
+  ingress {
+    description = "allows connection from the internet"
+    from_port   = var.frontend_port
+    to_port     = var.frontend_port
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  
+  tags = {
+    Name = "${var.frontend_app_name}-sg"
+  }
+}
+
 # ~~~~~~~~~~~ Security group for the Backend LoadBalancer ~~~~~~~~~~
 
 resource "aws_security_group" "backend_sg" {
