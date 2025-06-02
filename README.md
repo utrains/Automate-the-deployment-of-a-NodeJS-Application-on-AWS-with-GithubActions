@@ -261,28 +261,20 @@ For the pipeline to start execution, you just need to commit and push modificati
 
 The workflow will pause at the `wait-for-ecs-destroy-approval` job.
 
+When it's done you must have something like this :
+
+![image](https://github.com/user-attachments/assets/8bf28e6f-42df-42ea-b78f-83fb73b0d258)
+
+
 #### 2. Test the application
+
 To verify that the app is working properly, you will need to enter the URL of your frontend in the browser.
 
-The URL should be something like: ###################################################
+The URL is: [http://node-frontend-lb-425495593.us-east-2.elb.amazonaws.com:3000/]([url](http://node-frontend-lb-425495593.us-east-2.elb.amazonaws.com:3000/)) 
 
-The expected result should be
+The expected result should be like the one bellow and when you refresh you will see that the value has changed:
 
-##############################################################################################################
-# Darelle: Put the image here to show the expected result when the application is launched
-
-## Clean up
-
-When done testing the app, we will destroy the whole infrastructure to avoid recurrent charges in AWS.
-
-1. In your github repo, go to **Actions > Workflow Run > Approval Job**.
-2. Click on **Review deployments**.
-2. Click on **Approve and deploy**.
-
-Once approved, the `destroy-ecs` job will run.
-
-#########################################################
-# Darelle: put the steps to destroy the infra here too!
+![image](https://github.com/user-attachments/assets/83eda7e9-8d76-4b11-815f-eaf79e74d868)
 
 
 ## Step 6: Pipeline Environment Variables
@@ -294,6 +286,7 @@ In this workflow, the following environment variables are set globally:
   * `FRONTEND_REPO`
   * `BACKEND_REPO`
   * `AWS_ROLE_ARN`
+  * `TAG`
         
  - Replace the AWS Account ID and role ARN with your own values.
 
@@ -329,6 +322,18 @@ Repeat for:
 * `AWS_ROLE_ARN`
 
 Note: We will leave `TAG` it in the your workflow but it can also be put  here.
+
+
+## Clean up
+
+When done testing the app, we will destroy the whole infrastructure to avoid recurrent charges in AWS.
+
+1. In your github repo, go to **Actions > Workflow Run > Approval Job**.
+2. Click on **Review deployments**.
+2. Click on **Approve and deploy**.
+
+Once approved, the `destroy-ecs` job will run.
+
 
 
 ## Quick note on Terraform state file transfer from one job to another (Optional)
