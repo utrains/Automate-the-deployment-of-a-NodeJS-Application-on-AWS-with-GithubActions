@@ -1,13 +1,16 @@
 name: Deploy a Nodejs app on AWS using GithubActions
 
 on:
+  push:
+    branches:
+      - pipeline-jenkins
   workflow_dispatch:
 
 env:
-    OIDC_ROLE_ARN: arn:aws:iam::885684264653:role/github-actions-oidc-role
-    FRONTEND_REPO: 885684264653.dkr.ecr.us-east-2.amazonaws.com/node-frontend-repo
-    BACKEND_REPO: 885684264653.dkr.ecr.us-east-2.amazonaws.com/node-backend-repo
-    AWS_REGION: us-east-2
+    OIDC_ROLE_ARN: ${{ vars.OIDC_ROLE_ARN }}
+    FRONTEND_REPO:  ${{ vars.FRONTEND_REPO }}
+    BACKEND_REPO:  ${{ vars.BACKEND_REPO }}
+    AWS_REGION:  ${{ vars.AWS_REGION }}
     TAG: latest
 
 jobs:
