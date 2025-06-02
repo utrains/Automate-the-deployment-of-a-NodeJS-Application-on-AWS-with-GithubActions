@@ -105,7 +105,7 @@ jobs:
             echo "Pushing frontend Docker image to the frontend ECR repository"
             docker push $FRONTEND_REPO:$TAG 
 
-            # Push The Backend Image to the backend ECR repositor
+            # Push The Backend Image to the backend ECR repository
             echo "Pushing backend Docker image. to the backend ECR repository"
             docker push $BACKEND_REPO:$TAG     
       
@@ -145,10 +145,6 @@ jobs:
           cd ecs-deployment
           terraform init -input=false
           terraform apply -auto-approve  
-      
-      - name: Print the Terraform State file ecs terraform.tfstate
-        run: |
-            cat terraform.tfstate
       
       - name: Upload the Terraform State file ecs.tfstate
         uses: actions/upload-artifact@v4
@@ -255,6 +251,7 @@ jobs:
 
       - name: Use the terraform-state artifact
         run: |
+          cd infra
           terraform init -input=false
           terraform refresh
           terraform destroy -auto-approve
