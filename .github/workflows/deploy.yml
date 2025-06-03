@@ -53,6 +53,7 @@ jobs:
       - name: Print the Terraform State file infra terraform.tfstate
         run: |
             cd infra
+            terraform refresh
             cat terraform.tfstate
      
       - name: Upload the Terraform State file of the infrastructure
@@ -153,6 +154,7 @@ jobs:
       - name: Print the Terraform State file ecs terraform.tfstate
         run: |
             cd ecs-deployment
+            terraform refresh
             cat terraform.tfstate    
       
       - name: Upload the Terraform State file ecs.tfstate
