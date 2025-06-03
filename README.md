@@ -253,31 +253,7 @@ destroy-ecs:
         terraform destroy -auto-approve
 ```
 
-### Step 5: Execute the pipeline and test the application
-
-#### 1. Execute the pipeline
-
-For the pipeline to start execution, you just need to commit and push modifications. You can also trigger the workflow manually.
-
-The workflow will pause at the `wait-for-ecs-destroy-approval` job.
-
-When it's done you must have something like this :
-
-![image](https://github.com/user-attachments/assets/8bf28e6f-42df-42ea-b78f-83fb73b0d258)
-
-
-#### 2. Test the application
-
-To verify that the app is working properly, you will need to enter the URL of your frontend in the browser.
-
-The URL is: [http://node-frontend-lb-425495593.us-east-2.elb.amazonaws.com:3000/]([url](http://node-frontend-lb-425495593.us-east-2.elb.amazonaws.com:3000/)) 
-
-The expected result should be like the one bellow and when you refresh you will see that the value has changed:
-
-![image](https://github.com/user-attachments/assets/83eda7e9-8d76-4b11-815f-eaf79e74d868)
-
-
-## Step 6: Pipeline Environment Variables
+## Step 5: Pipeline Environment Variables
 
 Hardcoding sensitives values in the pipeline is not a good practice so we will need to set environment variables in the workflow through GitHub repository settings instead.
 In this workflow, the following environment variables are set globally:
@@ -314,15 +290,38 @@ In this workflow, the following environment variables are set globally:
 * **Value**: e.g., `us-east-2`
 * Click **Add secret** or **Add variable**.
 
-Repeat for:
-
-* `AWS_REGION`
-* `FRONTEND_REPO`
-* `BACKEND_REPO`
-* `AWS_ROLE_ARN`
+Repeat for: the Others variables 
 
 Note: We will leave `TAG` it in the your workflow but it can also be put  here.
 
+### Step 6: Execute the pipeline and test the application
+
+#### 1. Execute the pipeline
+
+For the pipeline to start execution, you just need to commit and push modifications. You can also trigger the workflow manually.
+
+![image](https://github.com/user-attachments/assets/8713b72c-cb36-4109-8ccc-576305b0fce1)
+
+The workflow will pause at the `wait-for-ecs-destroy-approval` job.
+
+When it's done you must have something like this :
+
+![image](https://github.com/user-attachments/assets/8bf28e6f-42df-42ea-b78f-83fb73b0d258)
+
+
+#### 2. Test the application
+
+To verify that the app is working properly, you will need to enter the URL of your frontend in the browser.
+
+The URL will be something like that : http://node-frontend-lb-XXXXXXXX.us-east-2.elb.amazonaws.com:3000/
+
+you can see it at bthe end of the step *Use the ecs-apply-plan.tfplan artifact* in the job *Apply-the-terraform-code-to-Launch-the-frontend-and-the-backend-app* 
+
+
+
+The expected result should be like the one bellow and when you refresh you will see that the value has changed:
+
+![image](https://github.com/user-attachments/assets/83eda7e9-8d76-4b11-815f-eaf79e74d868)
 
 
 ## Clean up
