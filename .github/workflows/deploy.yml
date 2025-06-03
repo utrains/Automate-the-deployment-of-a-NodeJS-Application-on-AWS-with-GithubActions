@@ -50,7 +50,11 @@ jobs:
             terraform init 
             terraform apply -auto-approve 
             
-    
+      - name: Print the Terraform State file infra terraform.tfstate
+        run: |
+            cd infra
+            cat terraform.tfstate
+     
       - name: Upload the Terraform State file of the infrastructure
         uses: actions/upload-artifact@v4
         with:
@@ -145,6 +149,11 @@ jobs:
           cd ecs-deployment
           terraform init -input=false
           terraform apply -auto-approve  
+
+      - name: Print the Terraform State file ecs terraform.tfstate
+        run: |
+            cd ecs-deployment
+            cat terraform.tfstate    
       
       - name: Upload the Terraform State file ecs.tfstate
         uses: actions/upload-artifact@v4
