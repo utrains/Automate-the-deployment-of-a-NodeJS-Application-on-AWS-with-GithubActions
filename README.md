@@ -313,10 +313,11 @@ When it's done you must have something like this :
 
 To verify that the app is working properly, you will need to enter the URL of your frontend in the browser.
 
-The URL will be something like that : http://node-frontend-lb-XXXXXXXX.us-east-2.elb.amazonaws.com:3000/
+The URL will be something like: http://node-frontend-lb-XXXXXXXX.us-east-2.elb.amazonaws.com:3000/
 
 you can see it at bthe end of the step *Use the ecs-apply-plan.tfplan artifact* in the job *Apply-the-terraform-code-to-Launch-the-frontend-and-the-backend-app* 
 
+![image](https://github.com/user-attachments/assets/3c4d47b7-2f4f-40a2-8c39-7af19a15bd87)
 
 
 The expected result should be like the one bellow and when you refresh you will see that the value has changed:
