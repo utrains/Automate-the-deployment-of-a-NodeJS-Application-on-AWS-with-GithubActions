@@ -3,7 +3,7 @@ name: Deploy a Nodejs app on AWS using GithubActions
 on:
   push:
     branches:
-      - pipeline-jenkins
+      - main
   workflow_dispatch:
 
 env:
