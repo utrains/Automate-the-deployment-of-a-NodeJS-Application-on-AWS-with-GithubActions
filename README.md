@@ -271,28 +271,20 @@ In this workflow, the following environment variables are set globally:
 * Open your repository on GitHub.
 * Click the **Settings** tab at the top right.
 
-### 2. Access Secrets or Variables
+### 2. Define the Variables
 
 * In the left sidebar, click on:
 
   * **Secrets and variables > Actions** (recommended for GitHub Actions secrets and variables)
   * OR just **Secrets** if your interface doesn’t show the new Variables section yet.
-
-### 3. Add New Secret or Variable
-
-* Click on **New repository secret** to add sensitive data like keys or tokens.
-  **OR**
 * Click on **New repository variable** for non-sensitive info like region or repo URLs.
-
-### 4. Add Your Variables
-
-* **Name**: e.g., `AWS_REGION`
-* **Value**: e.g., `us-east-2`
+  * **Name**: e.g., `AWS_REGION`
+  * **Value**: e.g., `us-east-2`
 * Click **Add secret** or **Add variable**.
 
 Repeat for: the Others variables 
 
-Note: We will leave `TAG` it in the your workflow but it can also be put  here.
+*Note:* We will leave `TAG` it in the your workflow but it can also be put  here.
 
 ### Step 6: Execute the pipeline and test the application
 
